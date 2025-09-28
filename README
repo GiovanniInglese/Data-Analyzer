@@ -1,0 +1,78 @@
+# BizInsights — Project Overview
+
+BizInsights is a local-first, universal **data analyzer**.  
+Upload a file → it auto-cleans, detects schema and domain, then produces an **executive summary**, **KPIs**, and **interactive charts** (dark theme).
+
+---
+
+## Purpose
+
+- **Speed up the “first look”** on a new dataset (CSV, Excel, Parquet, JSON, XML)
+- Provide **explainable** insights and KPIs you can copy into reports
+- Serve as a **portfolio-quality** reference for end-to-end data work
+- Run **entirely on your machine** (no external services)
+
+---
+
+## What it does
+
+1. **Ingest**: robust reader for CSV/TSV/Excel/Parquet/JSON/XML  
+2. **Clean**: normalizes nulls, strips commas, parses `%` strings, fixes mixed types  
+3. **Detect**: identifies date/amount/percent/categorical columns + **domain** (e.g., Sales vs. Churn)  
+4. **Analyze**: computes KPIs (totals/averages), trend slope, momentum (last 3 vs prior 3), best/worst months, top segments  
+5. **Visualize**: monthly trend + top dimension charts (Chart.js, dark UI)  
+6. **Export**: one-click **PNG** (charts) and **JSON** (full analysis payload)
+
+---
+
+## Supported file formats
+
+- **CSV**, **TSV**, **Excel** (`.xlsx`/`.xls`), **Parquet** (`fastparquet`), **JSON**, **XML`**  
+- *(Feather is optional and disabled by default; enable via `pyarrow` if desired.)*
+
+---
+
+## Domains & example insights
+
+| Domain           | Typical columns detected                         | KPIs & Insights (examples)                                                                 |
+|------------------|---------------------------------------------------|--------------------------------------------------------------------------------------------|
+| **Sales / Retail** | Date, Category/Segment, Sales, Profit, Discount  | Total/avg sales, trend slope per month, seasonal spikes, top category, margin, momentum    |
+| **Subscriptions / Churn** | customerID, tenure, MonthlyCharges, Churn | ARPU/ACPU, churn rate, top churned segments, tenure distribution                           |
+| **Education**     | date, course, score/grade                        | avg score, completion rate, trend of submissions                                           |
+| **IoT / Telemetry** | timestamp, device, metric                      | uptime/avg reading, anomalies by window, device leaderboard                                 |
+| **Reviews / NLP (light)** | date, rating, text (optional)              | avg rating by month/segment, volume spikes                                                 |
+
+> The analyzer is designed to give **useful first-pass insights** on datasets up to ~10⁵ rows on a laptop. For heavier workloads, treat this as a staging/EDA step.
+
+---
+
+## Use cases
+
+- Rapid **EDA** before deeper modeling
+- **Portfolio/demo** app for interviews
+- Internal **BI “first read”** on new CSV drops
+- Quick **data cleaning & validation** (nulls, types, %/currency parsing)
+- **Feature ideation**: trend/momentum/seasonality & segment KPIs
+
+---
+
+## Tech stack
+
+- **Backend:** Python 3.x, **Flask**, **Pandas**, **NumPy**
+- **Storage/IO:** `openpyxl` (Excel), **fastparquet** (Parquet)
+- **Frontend:** HTML/CSS + **Chart.js** (dark theme)
+- **Exports:** PNG (charts), JSON (analysis payload)
+
+### Skills demonstrated
+
+- Data wrangling & type inference  
+- ETL-style cleaning (nulls, numeric strings, percentages)  
+- Time-series KPIs (trend slope via linear fit, momentum windows)  
+- Segmentation & top-N analysis  
+- Flask routing, templating, and error handling  
+- Client-side charting with Chart.js
+
+---
+
+## Architecture (high level)
+
