@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>BizInsights</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b0b11;
+      --panel:#101018cc;
+      --border:#2a2a40;
+      --text:#e8e8ff;
+      --muted:#9aa0b4;
+      --accent:#a78bfa; /* violet */
+      --accent2:#22d3ee; /* cyan */
+      --accent3:#fb7185; /* rose */
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      color:var(--text); background: radial-gradient(1200px 800px at 10% -10%, #1a1440 0%, transparent 60%),
+                          radial-gradient(900px 600px at 110% 10%, #082b3a 0%, transparent 55%),
+                          radial-gradient(800px 500px at 50% 120%, #3a0a2a 0%, transparent 60%),
+                          var(--bg);
+      overflow-x:hidden;
+    }
+    /* floating blobs */
+    .blob{position:absolute; filter:blur(60px); opacity:.55; mix-blend-mode:screen; pointer-events:none}
+    .b1{width:500px;height:500px; left:-100px; top:-80px; background:conic-gradient(from 90deg,var(--accent),transparent)}
+    .b2{width:420px;height:420px; right:-80px; top:40px; background:conic-gradient(from 0deg,var(--accent2),transparent)}
+    .b3{width:520px;height:520px; left:40%; bottom:-140px; background:conic-gradient(from 30deg,var(--accent3),transparent)}
+    @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-12px)}100%{transform:translateY(0)}}
+    .b1,.b2,.b3{animation:float 8s ease-in-out infinite}
+
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px 24px; position:relative; z-index:2;
+    }
+    .brand{font-weight:800; letter-spacing:.3px}
+    .chip{background:#1c1c2a;border:1px solid var(--border); color:#c7c8ff; padding:4px 10px; border-radius:999px; font-size:12px}
+    .container{max-width:1100px; margin:40px auto; padding:0 16px; position:relative; z-index:2}
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow:0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+      padding:28px;
+    }
+    h1{margin:0 0 8px 0; font-size:40px}
+    p.muted{color:var(--muted); margin:0 0 18px}
+    .row{display:grid; grid-template-columns:1.2fr .8fr; gap:18px}
+    @media (max-width:900px){ .row{grid-template-columns:1fr} }
+
+    .uploader{
+      border:1px dashed #3b3b63; border-radius:14px; padding:18px; text-align:center;
+      background:#0e0e18cc;
+    }
+    input[type=file]{display:block; width:100%; margin:12px auto; color:#cfd2ff}
+    .btn{
+      display:inline-flex; align-items:center; gap:10px; padding:12px 16px; border-radius:12px;
+      border:1px solid #3a3a5a; background:
+      linear-gradient(135deg, #312e81 0%, #1e293b 60%);
+      color:#fff; text-decoration:none; font-weight:600; cursor:pointer;
+      transition:transform .08s ease, box-shadow .2s ease, border-color .2s ease;
+      box-shadow:0 8px 24px rgba(81,66,255,.25);
+    }
+    .btn:hover{transform:translateY(-1px); border-color:#5561ff}
+    .btn:active{transform:translateY(0)}
+    .spark{
+      width:14px; height:14px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #fff, #8b5cf6 40%, transparent 60%);
+      box-shadow: 0 0 40px 8px rgba(167,139,250,.45), 0 0 16px 2px rgba(34,211,238,.35);
+    }
+    .tips li{margin:.4rem 0; color:#b9bfd1}
+    code{color:#eab308}
+    footer{opacity:.65; font-size:12px; margin:16px 2px}
+  </style>
+</head>
+<body>
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+
+  <header>
+    <div class="brand">BizInsights</div>
+    <a class="chip" href="{{ url_for('bench') }}">Benchmarks</a>
+  </header>
+
+  <div class="container">
+    <div class="panel">
+      <h1>Turn raw files into <span style="color:var(--accent2)">insights</span> in seconds</h1>
+      <p class="muted">Upload a CSV / TSV / Excel / Parquet / JSON / XML. We’ll detect schema, clean messy data, and produce KPIs, charts, and a crisp executive summary.</p>
+
+      <div class="row">
+        <div class="uploader">
+          <form action="{{ url_for('analyze') }}" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" required />
+            <button class="btn" type="submit"><span class="spark"></span> Analyze dataset</button>
+          </form>
+          <p class="muted" style="margin-top:10px">No data leaves your browser-server setup.</p>
+        </div>
+
+        <div class="panel" style="background:linear-gradient(180deg, rgba(167,139,250,.08), rgba(34,211,238,.05));">
+          <h3 style="margin-top:0">Pro tips</h3>
+          <ul class="tips">
+            <li>Include a date column (e.g., <code>Order Date</code>, <code>timestamp</code>) for trend charts.</li>
+            <li>Sales data? Add <code>Sales</code> &amp; <code>Profit</code> for richer KPIs.</li>
+            <li>Churn data? Add <code>Churn</code> (Yes/No) to unlock segment insights.</li>
+          </ul>
+          <div style="margin-top:12px">
+            <a class="btn" href="sandbox:/mnt/data/retail_large_5k.csv" download>Retail 5k CSV</a>
+            <a class="btn" href="sandbox:/mnt/data/telco_large_2_5k.csv" download style="margin-left:8px">Telco 2.5k CSV</a>
+          </div>
+        </div>
+      </div>
+
+      <footer>Made with Flask · Pandas · Chart.js</footer>
+    </div>
+  </div>
+</body>
+</html>
+

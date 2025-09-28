@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Results — {{ filename }}{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+
+  <!-- Preview -->
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h3 class="card-title mb-3">
+          <i class="bi bi-table me-2"></i>Preview: {{ filename }}
+        </h3>
+        <div class="table-responsive">
+          {{ table_html|safe }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters (date range + category) -->
+  {% if date_present or primary_dim %}
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title"><i class="bi bi-funnel me-2"></i>Filters</h4>
+        <form class="row g-2 mt-1" action="/refine" method="POST">
+          {% if date_present %}
+          <div class="col-md-3">
+            <label class="form-label">From</label>
+            <input type="date" class="form-control" name="date_from">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">To</label>
+            <input type="date" class="form-control" name="date_to">
+          </div>
+          {% endif %}
+          {% if primary_dim %}
+          <div class="col-md-4">
+            <label class="form-label">{{ primary_dim }} filter</label>
+            <select class="form-select" name="category_value">
+              <option value="__ALL__">(All)</option>
+              {% for v in cat_options %}
+                <option value="{{ v }}">{{ v }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+          <div class="col-md-2 d-flex align-items-end">
+            <button class="btn btn-primary w-100" type="submit">
+              <i class="bi bi-filter-square me-1"></i>Apply
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Summary -->
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title"><i class="bi bi-clipboard-data me-2"></i>Summary</h4>
+        <ul class="mb-2">
+          <li><strong>Rows:</strong> {{ summary.rows }}</li>
+          <li><strong>Columns:</strong> {{ summary.columns }}</li>
+        </ul>
+        <details>
+          <summary>Missing values</summary>
+          <ul class="mt-2">
+            {% for col, val in summary.missing.items() %}
+              <li>{{ col }}: {{ val }}</li>
+            {% endfor %}
+          </ul>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  {% if kpis %}
+  <div class="col-md-6">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title"><i class="bi bi-cash-coin me-2"></i>KPIs</h4>
+        <ul class="mb-0">
+          {% for k, v in kpis.items() %}
+            <li><strong>{{ k }}</strong>: {{ v }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Charts -->
+  {% if chart1 or chart2 %}
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title"><i class="bi bi-bar-chart-line me-2"></i>Charts</h4>
+        {% if chart1 %}<img src="/{{ chart1 }}" class="img-fluid mb-3"/>{% endif %}
+        {% if chart2 %}<img src="/{{ chart2 }}" class="img-fluid mb-3"/>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- AI Insights -->
+  {% if insights %}
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title"><i class="bi bi-stars me-2"></i>AI Insight Summary</h4>
+        <div class="alert alert-info mb-0" style="white-space: pre-wrap;">
+          {{ insights }}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Forecast -->
+  {% if forecast %}
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4 class="card-title"><i class="bi bi-graph-up me-2"></i>7-Day Forecast</h4>
+        <ul>
+          {% for day, val in forecast.items() %}
+            <li>{{ day }} : {{ val }}</li>
+          {% endfor %}
+        </ul>
+        {% if forecast_chart %}
+          <img src="/{{ forecast_chart }}" class="img-fluid mb-3"/>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Actions -->
+  <div class="col-12">
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-primary" href="/download_report">
+        <i class="bi bi-download me-1"></i>Download Report
+      </a>
+      <a class="btn btn-outline-secondary" href="/download_kpis">
+        <i class="bi bi-filetype-csv me-1"></i>Download KPIs CSV
+      </a>
+      <a class="btn btn-secondary ms-auto" href="/">
+        <i class="bi bi-arrow-repeat me-1"></i>Analyze another file
+      </a>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

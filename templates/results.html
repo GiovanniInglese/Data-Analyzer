@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Analysis Results</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root{
+      --bg:#0b0b11;
+      --panel:#101018cc;
+      --panel-grad: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      --border:#2a2a40;
+      --text:#e8e8ff;
+      --muted:#9aa0b4;
+      --accent:#a78bfa;   /* violet */
+      --accent2:#22d3ee;  /* cyan */
+      --accent3:#fb7185;  /* rose */
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 10% -10%, #1a1440 0%, transparent 60%),
+                  radial-gradient(900px 600px at 110% 10%, #082b3a 0%, transparent 55%),
+                  radial-gradient(800px 500px at 50% 120%, #3a0a2a 0%, transparent 60%),
+                  var(--bg);
+      overflow-x:hidden;
+    }
+    header{
+      display:flex; align-items:center; gap:12px; justify-content:space-between;
+      padding:20px 24px; position:relative;
+    }
+    .brand{font-weight:800}
+    .chip{background:#1c1c2a;border:1px solid var(--border); color:#c7c8ff;
+          padding:4px 10px; border-radius:999px; font-size:12px}
+    .back a{color:#c8b5ff; text-decoration:none}
+    .container{max-width:1200px; margin:20px auto 48px; padding:0 16px}
+    .card{
+      background:var(--panel-grad);
+      border:1px solid var(--border); border-radius:var(--radius);
+      box-shadow:0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+      padding:22px; margin:14px 0;
+    }
+    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px}
+    .kpi{
+      background:#0e0e18cc; border:1px solid var(--border);
+      border-radius:14px; padding:14px; text-align:center;
+    }
+    .kpi .label{color:var(--muted); font-size:12px}
+    .kpi .val{font-size:22px; font-weight:800; margin-top:6px}
+    h1{font-size:40px; margin:10px 0 8px}
+    h3{margin:0 0 12px}
+    ul{margin:0 0 0 18px}
+    .muted{color:var(--muted)}
+    .btn{
+      display:inline-flex; align-items:center; gap:10px; padding:10px 14px; border-radius:12px;
+      border:1px solid #3a3a5a; background:linear-gradient(135deg,#312e81 0%, #1e293b 60%);
+      color:#fff; text-decoration:none; font-weight:600; cursor:pointer;
+      transition:transform .08s ease, border-color .2s ease; margin-right:8px;
+    }
+    .btn:hover{transform:translateY(-1px); border-color:#5561ff}
+    canvas{width:100%!important; height:360px!important}
+    .empty{color:var(--muted); font-style:italic}
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="brand">BizInsights</div>
+      <span class="chip">{{ (result.profile.domain or 'Generic') if result and result.profile else 'Generic' }}</span>
+    </div>
+    <div class="back"><a href="{{ url_for('index') }}">← New analysis</a></div>
+  </header>
+
+  <div class="container">
+    <div style="margin:6px 0 14px">
+      <button class="btn" onclick="exportCharts()">Export charts (PNG)</button>
+      <button class="btn" onclick="downloadReport()">Download report (JSON)</button>
+    </div>
+
+    <h1>Analysis Results</h1>
+
+    <div class="card">
+      <h3>Executive Summary</h3>
+      <ul>
+        {% for b in result.executive_summary %}
+          <li>{{ b }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Insights</h3>
+      {% if result.insights and result.insights|length %}
+      <ul>
+        {% for i in result.insights %}
+          <li>{{ i }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+        <div class="empty">No additional insights.</div>
+      {% endif %}
+    </div>
+
+    <div class="grid">
+      {% for key,val in result.kpis.items() %}
+      <div class="kpi">
+        <div class="label">{{ key }}</div>
+        <div class="val">
+          {% if val is number %}
+            {{ "{:,.2f}".format(val) if "." in ("{}".format(val)) else "{:,}".format(val) }}
+          {% else %}
+            {{ val }}
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% set kpi_series = result.charts.kpi_series %}
+    <div class="card">
+      <h3>{{ kpi_series.title if kpi_series else "Time Series" }}</h3>
+      <canvas id="kpiSeries"></canvas>
+      <div class="empty" id="kpiSeriesEmpty" style="display:none">No time-series data available.</div>
+    </div>
+
+    {% for seg in result.charts.segments %}
+      <div class="card">
+        <h3>Top {{ seg.column }} ({{ seg.metric_label }})</h3>
+        <canvas id="seg_{{ loop.index }}"></canvas>
+        <div class="empty" id="seg_{{ loop.index }}_empty" style="display:none">No segment data available.</div>
+      </div>
+    {% endfor %}
+
+    <div class="card">
+      <h3>Column Profile</h3>
+      <div class="grid">
+        {% for col in result.profile.columns_meta %}
+          <div class="kpi">
+            <div class="label">{{ col.name }} — {{ col.dtype }}</div>
+            <div class="val">{{ "{:.1f}".format(col.null_pct) }}%</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+<script>
+(function() {
+  const res = {{ result|tojson }};
+  const ks = res?.charts?.kpi_series;
+  const measure = (res?.profile?.measure || "").toLowerCase();
+  const moneyLike = ["sales","revenue","profit","gmv","total","amount","subtotal","net","cost"]
+                      .some(k => measure.includes(k));
+
+  // Global dark defaults
+  Chart.defaults.color = '#cfd2ff';
+  Chart.defaults.borderColor = '#2a2a40';
+
+  // Number formatting
+  const fmt = v => {
+    try { return v.toLocaleString(); } catch { return v; }
+  };
+  const fmtMoney = v => `$${fmt(v)}`;
+
+  // Build gradient stroke for nicer neon look
+  function lineDataset(ctx, label, data) {
+    const g = ctx.createLinearGradient(0,0,0,300);
+    g.addColorStop(0, 'rgba(167,139,250,1)');  // violet
+    g.addColorStop(1, 'rgba(34,211,238,1)');   // cyan
+    return {
+      label, data,
+      borderColor: g, backgroundColor: 'rgba(167,139,250,.15)',
+      tension: 0.25, pointRadius: 3, pointHoverRadius: 5, fill: false
+    };
+  }
+
+  // Line chart (time series)
+  const kcv = document.getElementById('kpiSeries');
+  if (ks && ks.labels?.length && ks.values?.length) {
+    const ctx = kcv.getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: { labels: ks.labels, datasets: [lineDataset(ctx, ks.y_label || 'Value', ks.values)] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.05)' } },
+          y: { grid: { color: 'rgba(255,255,255,0.06)' },
+               ticks: { callback: v => moneyLike ? fmtMoney(v) : fmt(v) } }
+        },
+        plugins: { legend: { labels: { color: '#e8e8ff' } } }
+      }
+    });
+  } else {
+    kcv.style.display = 'none';
+    document.getElementById('kpiSeriesEmpty').style.display = 'block';
+  }
+
+  // Segment bar charts
+  (res?.charts?.segments || []).forEach((seg, i) => {
+    const el = document.getElementById(`seg_${i+1}`);
+    const cats = (seg.top_categories || []).map(x => x.category);
+    const vals = (seg.top_categories || []).map(x => x.metric);
+    if (cats.length && vals.length) {
+      new Chart(el.getContext('2d'), {
+        type: 'bar',
+        data: { labels: cats, datasets: [{
+          label: seg.metric_label,
+          data: vals,
+          backgroundColor: 'rgba(167,139,250,.35)'
+        }]},
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.04)' } },
+            y: { grid: { color: 'rgba(255,255,255,0.06)' },
+                 ticks: { callback: v => moneyLike ? fmtMoney(v) : fmt(v) } }
+          },
+          plugins: { legend: { labels: { color: '#e8e8ff' } } }
+        }
+      });
+    } else {
+      el.style.display = 'none';
+      const empty = document.getElementById(`seg_${i+1}_empty`);
+      if (empty) empty.style.display = 'block';
+    }
+  });
+
+  // Exports
+  window.exportCharts = () => {
+    const canvases = Array.from(document.querySelectorAll('canvas'));
+    canvases.forEach((cv, idx) => {
+      const link = document.createElement('a');
+      link.download = `chart_${idx+1}.png`;
+      link.href = cv.toDataURL('image/png');
+      link.click();
+    });
+  };
+  window.downloadReport = () => {
+    const blob = new Blob([JSON.stringify(res, null, 2)], {type: 'application/json'});
+    const link = document.createElement('a');
+    link.download = 'analysis_report.json';
+    link.href = URL.createObjectURL(blob);
+    link.click();
+  };
+})();
+</script>
+</body>
+</html>
+

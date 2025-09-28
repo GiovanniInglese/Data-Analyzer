@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Business Insights Report — {{ filename }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/lux/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { padding: 2rem; }
+    .kpi { font-size: 1.05rem; }
+  </style>
+</head>
+<body>
+  <h2>Business Insights Report</h2>
+  <p class="text-muted">File: {{ filename }}</p>
+
+  <h3 class="mt-4">Dataset Summary</h3>
+  <ul>
+    <li><strong>Rows:</strong> {{ summary.rows }}</li>
+    <li><strong>Columns:</strong> {{ summary.columns }}</li>
+  </ul>
+  <h5>Missing Values</h5>
+  <ul>
+  {% for col, val in summary.missing.items() %}
+    <li>{{ col }}: {{ val }}</li>
+  {% endfor %}
+  </ul>
+
+  {% if kpis %}
+  <h3 class="mt-4">KPIs</h3>
+  <ul class="kpi">
+    {% for k, v in kpis.items() %}
+      <li><strong>{{ k }}</strong>: {{ v }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  <h3 class="mt-4">Preview (first 10 rows)</h3>
+  <div class="table-responsive">
+    {{ preview_table | safe }}
+  </div>
+
+  {% if chart1 or chart2 %}
+  <h3 class="mt-4">Charts</h3>
+  {% if chart1 %}<img src="/{{ chart1 }}" class="img-fluid mb-3"/>{% endif %}
+  {% if chart2 %}<img src="/{{ chart2 }}" class="img-fluid mb-3"/>{% endif %}
+  {% endif %}
+
+  {% if insights %}
+  <h3 class="mt-4">AI Insight Summary</h3>
+  <div class="alert alert-info" style="white-space: pre-wrap;">{{ insights }}</div>
+  {% endif %}
+
+  {% if forecast %}
+  <h3 class="mt-4">7-Day Forecast</h3>
+  <ul>
+    {% for day, val in forecast.items() %}
+      <li>{{ day }} : {{ val }}</li>
+    {% endfor %}
+  </ul>
+  {% if forecast_chart %}<img src="/{{ forecast_chart }}" class="img-fluid mb-3"/>{% endif %}
+  {% endif %}
+</body>
+</html>
+
