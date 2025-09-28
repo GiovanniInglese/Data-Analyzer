@@ -1,0 +1,11 @@
+customerID,gender,SeniorCitizen,tenure,MonthlyCharges,TotalCharges,Churn
+CUST1,Female,0,51,43.09,1198.12,No
+CUST2,Female,1,7,44.1,2924.96,No
+CUST3,Male,0,21,88.33,350.3,No
+CUST4,Male,1,39,81.0,4242.97,No
+CUST5,Female,0,18,103.32,2358.82,Yes
+CUST6,Male,1,4,37.34,2096.72,No
+CUST7,Male,1,60,59.11,4647.96,No
+CUST8,Male,0,14,38.22,3690.91,No
+CUST9,Female,0,9,95.54,1767.4,No
+CUST10,Female,0,53,62.52,2938.13,No
